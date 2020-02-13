@@ -12,6 +12,7 @@ using System.Net.Http;
 using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Net;
 
 
 namespace NasaPhotos.Controllers
@@ -62,12 +63,12 @@ namespace NasaPhotos.Controllers
                     
                     //extract image from the photo container
                     foreach (ApiData i in PhotoContainer.photos) 
-                    {
-                        
+                    {                        
                         ViewModel.RoverImages.Add(i.img_src);
+                        DownloadImage(i.img_src, i.id);
                         counter++;
                     }
-
+                    DownloadImage(PhotoContainer.photos[0].img_src, PhotoContainer.photos[0].id);
                     RoverData.Add(PhotoContainer);
                 }
             }
@@ -94,57 +95,78 @@ namespace NasaPhotos.Controllers
             return "This is my Welcome Controller";
         }
 
-        [HttpPost]
-        public async Task<IActionResult> GetPhotos(string Date) 
+        //[HttpPost]
+        //public async Task<IActionResult> GetPhotos(string Date) 
+        //{
+
+        //    DataContainer PhotoContainer = new DataContainer();
+        //    List<string> Dates = new List<string>();
+        //    List<string> Queries = new List<string>();
+        //    List<DataContainer> RoverData = new List<DataContainer>();
+        //    IndexViewModel ViewModel = new IndexViewModel();
+        //    Dates.AddRange(ReadFileContents());
+
+        //    //format dates and create queries
+        //    for (int i = 0; i < Dates.Count; i++)
+        //    {
+        //        string date = FormatDate(Dates[i]);
+
+        //        if (date != "")
+        //        {
+        //            Queries.Add("https://api.nasa.gov/mars-photos/api/v1/rovers/curiosity/photos?earth_date=" + date + "&api_key=" + APiKey);
+        //        }
+
+        //    }
+
+        //    //run the queries
+
+        //    using (HttpClient client = new HttpClient())
+        //    {
+        //        foreach (string query in Queries)
+        //        {
+        //            var stringTask = client.GetStringAsync(query);
+
+        //            PhotoContainer = JsonConvert.DeserializeObject<DataContainer>(await stringTask);
+        //            //add images to image file
+
+        //            int counter = 0;
+
+        //            //extract image from the photo container
+        //            foreach (ApiData i in PhotoContainer.photos)
+        //            {
+
+        //                ViewModel.RoverImages.Add(i.img_src);
+        //                counter++;
+        //            }
+
+        //            RoverData.Add(PhotoContainer);
+        //        }
+        //    }
+
+        //    return View("~/Views/Home/PhotoGrid.cshtml", PhotoContainer);
+        //}
+
+        public bool DownloadImage(string url, int id) 
         {
+            //create MARS folder on C drive
+            string folderName = @"c:\MARS-PHOTOS";
+            System.IO.Directory.CreateDirectory(folderName);
 
-            DataContainer PhotoContainer = new DataContainer();
-            List<string> Dates = new List<string>();
-            List<string> Queries = new List<string>();
-            List<DataContainer> RoverData = new List<DataContainer>();
-            IndexViewModel ViewModel = new IndexViewModel();
-            Dates.AddRange(ReadFileContents());
+            string fileName = id.ToString() + ".JPG";
 
-            //format dates and create queries
-            for (int i = 0; i < Dates.Count; i++)
+            try
             {
-                string date = FormatDate(Dates[i]);
+                WebClient client = new WebClient();
+                client.DownloadFile(url, folderName + @"\" + fileName);
 
-                if (date != "")
-                {
-                    Queries.Add("https://api.nasa.gov/mars-photos/api/v1/rovers/curiosity/photos?earth_date=" + date + "&api_key=" + APiKey);
-                }
-
+                return true;
             }
-
-            //run the queries
-
-            using (HttpClient client = new HttpClient())
+            catch (Exception e) 
             {
-                foreach (string query in Queries)
-                {
-                    var stringTask = client.GetStringAsync(query);
-
-                    PhotoContainer = JsonConvert.DeserializeObject<DataContainer>(await stringTask);
-                    //add images to image file
-
-                    int counter = 0;
-
-                    //extract image from the photo container
-                    foreach (ApiData i in PhotoContainer.photos)
-                    {
-
-                        ViewModel.RoverImages.Add(i.img_src);
-                        counter++;
-                    }
-
-                    RoverData.Add(PhotoContainer);
-                }
+                return false;
             }
-
-            return View("~/Views/Home/PhotoGrid.cshtml", PhotoContainer);
         }
-
+        
 
 
         #region Helpers
