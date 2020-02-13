@@ -1,0 +1,56 @@
+﻿@model NasaPhotos.Models.IndexViewModel
+
+@{
+    ViewData["Title"] = "Home Page";
+}
+
+<div class="text-center">
+    <h1 class="display-4">Welcome</h1>
+    <p>Please Enter an Earth Date to retrieve Rover Photos</p>
+    <div>
+        <p>
+            <input class="date-picker" id="date"/>
+            <button id="submit">Get Photos</button>
+        </p>
+    </div>
+
+    <div>
+        <ul>
+            
+            @foreach (var item in Model.RoverImages) 
+            {
+            <li>
+                <a href="@Url.Content(item)" download>
+                    <img src="@Url.Content(item)" alt="Image" />
+                </a>
+            </li>
+            
+            }
+        </ul>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        PageLoad();
+    });
+
+    function PageLoad()
+    {
+        $("#date").datepicker();
+
+        $("#submit").on("click", function () {
+            //get text box value
+            var date = $("#date").val();
+
+            $.ajax({
+                url: '/Home/GetPhotos',
+                type: 'POST',
+                data: {Date: date},
+                dataType: "json"
+            }).done(function (result) {
+                alert(result);
+            });
+        });
+    }
+</script>
